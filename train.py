@@ -10,8 +10,8 @@ print(device)
 
 #Create the Loader
 train_loader, val_loader, vocab_size, token_to_id, id_to_token = make_translation_loader(
-    batch_size=32,
-    num_examples=5000,
+    batch_size=16,
+    num_examples=10000,
 )
 print("Vocabulary size:", VOCAB_SIZE)
 
@@ -29,6 +29,7 @@ optimizer = torch.optim.Adam(
 def train(model,dataloader):
     model.train()
     total_loss=0
+    total_tokens=0
     for scr, tgt in dataloader:
         scr, tgt = scr.to(device), tgt.to(device)
         # Teacher forcing
@@ -43,9 +44,11 @@ def train(model,dataloader):
             model.parameters(), 1.0
         )
         optimizer.step()
-        total_loss += loss.item()
+        token_count = (tgt_output != PAD_ID).sum().item()
+        total_loss += loss.item() * token_count
+        total_tokens += token_count
 
-    return total_loss / len(dataloader)
+    return total_loss / total_tokens
 
 #Validation Function
 @torch.no_grad()
@@ -53,7 +56,6 @@ def evaluate(model, dataloader):
     model.eval()
     total_loss = 0.0
     total_tokens = 0
-
     for src, tgt in dataloader:
         src, tgt = src.to(device), tgt.to(device)
 
@@ -73,7 +75,7 @@ def evaluate(model, dataloader):
     return total_loss / total_tokens
 
 # Training
-epochs=20
+epochs=30
 best_val_loss=float("inf")
 for epoch in range(epochs):
     train_loss = train(model, train_loader)

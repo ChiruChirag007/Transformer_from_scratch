@@ -58,25 +58,18 @@ def translate(text):
 rows = load_dataset(
     "Helsinki-NLP/opus_books",
     "en-fr",
-    split="train[:5000]",
+    split="train[15000:16000]",
 )
 
-pairs = [
+test_pairs = [
     (row["translation"]["en"], row["translation"]["fr"])
     for row in rows
     if row["translation"]["en"].strip()
     and row["translation"]["fr"].strip()
 ]
 
-random.Random(42).shuffle(pairs)
-split_at = int(len(pairs) * 0.9)
-validation_pairs = pairs[split_at:]
-
-# Show model predictions beside the real translations.
-for english, actual_french in validation_pairs[:5]:
+for english, actual_french in test_pairs[:10]:
     predicted_french = translate(english)
-
-    print(f"\nEnglish:            {english}")
-    print(f"Actual French:      {actual_french}")
-    print(f"Model translation:  {predicted_french}")
-
+    print(f"\nEnglish:           {english}")
+    print(f"Actual French:     {actual_french}")
+    print(f"Model translation: {predicted_french}")
